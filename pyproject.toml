@@ -6,9 +6,6 @@ description = ""
 authors = ["bartnyk <jakub@bartnyk.pl>"]
 readme = "README.md"
 
-[tool.poetry.packages]
-include = ["fmp"]
-
 [tool.poetry.dependencies]
 python = "^3.12"
 pydantic = "^2.10.5"
