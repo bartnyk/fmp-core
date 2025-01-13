@@ -23,6 +23,6 @@ setup(
     description="Core package for stock predictor",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    url="https://github.com/bartnyk/stock_predictor_core",
+    url="https://github.com/bartnyk/fmp-core",
     python_requires=">=3.12",
 )
