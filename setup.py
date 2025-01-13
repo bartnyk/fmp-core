@@ -1,17 +1,28 @@
-from setuptools import setup, find_packages
+import tomllib
+
+from setuptools import find_packages, setup
+
+
+def get_version() -> str:
+    with open("pyproject.toml", "r") as f:
+        pyproject = tomllib.load(f)
+        return pyproject["tool"]["poetry"]["version"]
+
 
 setup(
-    name="fmp_core",
-    version="0.1.0",
+    name="fmp-core",
+    version=get_version(),
     packages=find_packages(),
     install_requires=[
-        # List your dependencies here
+        "pydantic",
+        "pydantic-settings",
+        "motor",
     ],
-    author="Jakub Bartnik",
+    author="bartnyk",
     author_email="jakub@bartnyk.pl",
     description="Core package for stock predictor",
-    long_description=open('README.md').read(),
-    long_description_content_type='text/markdown',
+    long_description=open("README.md").read(),
+    long_description_content_type="text/markdown",
     url="https://github.com/bartnyk/stock_predictor_core",
-    python_requires='>=3.12',
+    python_requires=">=3.12",
 )

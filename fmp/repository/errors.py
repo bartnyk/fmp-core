@@ -3,7 +3,7 @@ Module for repository exceptions.
 
 """
 
-from core.errors import BaseMessageException
+from fmp.errors import BaseMessageException
 
 
 class CollectionNameNotDefinedException(BaseMessageException):

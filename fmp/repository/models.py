@@ -1,8 +1,6 @@
+from bson import ObjectId
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional, Union
-
-from bson import ObjectId
 from pydantic import (
     AwareDatetime,
     BaseModel,
@@ -14,8 +12,9 @@ from pydantic import (
     model_validator,
 )
 from pymongo import ASCENDING, DESCENDING
+from typing import Optional, Union
 
-from core.consts import Currency
+from fmp.consts import Currency
 
 
 class ListBaseModel(RootModel):

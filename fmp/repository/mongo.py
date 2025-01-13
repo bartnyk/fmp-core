@@ -12,10 +12,10 @@ from pydantic import BaseModel, RootModel
 from pymongo import DESCENDING, results
 from pymongo.errors import ConnectionFailure
 
-from core.config import cfg
-from core.repository.errors import CollectionNameNotDefinedException
-from core.repository.models import ForexPair, ForexTicker, MongoDBIndex
-from core.repository.utils import log_repo_action
+from fmp.config import cfg
+from fmp.repository.errors import CollectionNameNotDefinedException
+from fmp.repository.models import ForexPair, ForexTicker, MongoDBIndex
+from fmp.repository.utils import log_repo_action
 
 logger: logging.Logger = logging.getLogger("db_logger")
 
