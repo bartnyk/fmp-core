@@ -4,7 +4,7 @@ from setuptools import find_packages, setup
 
 
 def get_version() -> str:
-    with open("pyproject.toml", "r") as f:
+    with open("pyproject.toml", "rb") as f:
         pyproject = tomllib.load(f)
         return pyproject["tool"]["poetry"]["version"]
 

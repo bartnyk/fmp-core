@@ -10,22 +10,25 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/fmp-core
+      url: https://pypi.org/project/fmp-core/
     permissions:
       id-token: write
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python
+      - name: Set up Python and poetry
         uses: actions/setup-python@v4
         with:
           python-version: "3.12"
-      - name: Install and configure Poetry
-        uses: snok/install-poetry@v1
+      - uses: Gr1N/setup-poetry@v8
+      - uses: actions/cache@v2
         with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
+          path: ~/.cache/pypoetry/virtualenvs
+          key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}
+      - run: poetry --version
       - name: Install dependencies
-        run: poetry install
+        run: | 
+          poetry install
+          pip install setuptools wheel
       - name: Build package
         run: python setup.py sdist bdist_wheel
       - name: Publish package distributions to PyPI
