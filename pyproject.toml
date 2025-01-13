@@ -1,10 +1,13 @@
 
 [tool.poetry]
-name = "fmp-core"
+name = "fmp"
 version = "0.1.0"
 description = ""
 authors = ["bartnyk <jakub@bartnyk.pl>"]
 readme = "README.md"
+
+[tool.poetry.packages]
+include = ["fmp"]
 
 [tool.poetry.dependencies]
 python = "^3.12"
