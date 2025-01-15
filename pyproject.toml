@@ -1,7 +1,7 @@
 
 [tool.poetry]
 name = "fmp"
-version = "1.0.0"
+version = "1.1.0"
 description = ""
 authors = ["bartnyk <jakub@bartnyk.pl>"]
 readme = "README.md"
@@ -13,6 +13,8 @@ pydantic-settings = "^2.6.1"
 motor = "^3.6.0"
 setuptools = "^75.7.0"
 wheel = "^0.45.1"
+ruff = "^0.8.1"
+isort = "^5.13.2"
 
 
 [build-system]

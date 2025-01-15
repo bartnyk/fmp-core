@@ -57,14 +57,7 @@ class Config(BaseSettings):
     ----------
     mongodb : MongoDBConfig
         MongoDB configuration.
-    project_path : PathConfig
-        Project paths configuration.
-    fmp : FMPConfig
-        Forex defaults/setup configuration.
-    proxy : ProxyConfig
-        Proxy configuration - dynamic/static.
-    model_config : SettingsConfigDict
-        Pydantic model configuration.
+
     """
 
     mongodb: MongoDBConfig

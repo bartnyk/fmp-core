@@ -1,6 +1,9 @@
 from bson import ObjectId
 from dataclasses import dataclass
 from datetime import datetime
+from fmp.config import cfg
+from fmp.consts import Currency
+from pandas import Timestamp
 from pydantic import (
     AwareDatetime,
     BaseModel,
@@ -13,8 +16,6 @@ from pydantic import (
 )
 from pymongo import ASCENDING, DESCENDING
 from typing import Optional, Union
-
-from fmp.consts import Currency
 
 
 class ListBaseModel(RootModel):
@@ -83,8 +84,7 @@ class ForexTicker(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     ticker: ForexPair = Field(alias="Ticker")
-    timestamp_datetime: Optional[AwareDatetime] = Field(alias="Datetime", default=None)
-    timestamp_date: Optional[datetime] = Field(alias="Date", default=None)
+    timestamp: Optional[AwareDatetime] = Field(alias="Datetime", default=None)
     close: float = Field(alias="Close")
     high: float = Field(alias="High")
     low: float = Field(alias="Low")
@@ -94,10 +94,13 @@ class ForexTicker(BaseModel):
     def ticker_serializer(self, ticker: ForexPair) -> str:
         return ticker.raw
 
-    @model_validator(mode="after")
-    def date_or_datetime(self) -> "ForexTicker":
-        if not (self.timestamp_datetime or self.timestamp_date):
-            raise ValueError("Either timestamp_datetime or timestamp_date must be provided.")
+    @model_validator(mode="before")
+    def date_to_datetime(self) -> "ForexTicker":
+        if not self.get("timestamp"):
+            self["timestamp"] = self.get("Date", None) or self.get("Datetime", None)
+        if isinstance(self["timestamp"], Timestamp):
+            self["timestamp"] = self["timestamp"].to_pydatetime()
+        self["timestamp"] = self["timestamp"].replace(tzinfo=cfg.timezone)
         return self
 
     @model_validator(mode="before")

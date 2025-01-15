@@ -5,17 +5,15 @@ Module for MongoDB repositories.
 
 import logging
 from abc import ABC
-from typing import Optional
-
-from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCollection, AsyncIOMotorCursor, AsyncIOMotorDatabase
-from pydantic import BaseModel, RootModel
-from pymongo import DESCENDING, results
-from pymongo.errors import ConnectionFailure
-
 from fmp.config import cfg
 from fmp.repository.errors import CollectionNameNotDefinedException
 from fmp.repository.models import ForexPair, ForexTicker, MongoDBIndex
 from fmp.repository.utils import log_repo_action
+from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCollection, AsyncIOMotorCursor, AsyncIOMotorDatabase
+from pydantic import BaseModel, RootModel
+from pymongo import DESCENDING, results
+from pymongo.errors import ConnectionFailure
+from typing import Optional
 
 logger: logging.Logger = logging.getLogger("db_logger")
 
@@ -97,7 +95,7 @@ class MongoDBRepository(ABC):
         return await self._collection.insert_one(document, *args, **kwargs)
 
     @log_repo_action(logger)
-    async def insert_many(self, documents: RootModel, *args, **kwargs) -> results.InsertManyResult:
+    async def insert_many(self, documents: list, *args, **kwargs) -> results.InsertManyResult:
         """
         Insert multiple documents into the collection.
 
@@ -111,7 +109,7 @@ class MongoDBRepository(ABC):
         InsertManyResult
             Insert result object.
         """
-        return await self._collection.insert_many(documents.model_dump(), *args, **kwargs)
+        return await self._collection.insert_many(documents, *args, **kwargs)
 
     @log_repo_action(logger)
     async def find(self, query: dict, *args, **kwargs) -> AsyncIOMotorCursor:
@@ -246,8 +244,7 @@ class ForexDataRepository(MongoDBRepository):
         (
             (
                 MongoDBIndex(key="ticker", direction=DESCENDING),
-                MongoDBIndex(key="timestamp_datetime", direction=DESCENDING),
-                MongoDBIndex(key="timestamp_date", direction=DESCENDING),
+                MongoDBIndex(key="timestamp", direction=DESCENDING),
             ),
             True,
         ),
