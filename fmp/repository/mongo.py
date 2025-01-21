@@ -5,15 +5,18 @@ Module for MongoDB repositories.
 
 import logging
 from abc import ABC
+from typing import Optional
+
 from fmp.config import cfg
 from fmp.repository.errors import CollectionNameNotDefinedException
-from fmp.repository.models import ForexPair, ForexTicker, MongoDBIndex
+from fmp.repository.models import (ForexPair, ForexTicker, MongoDBIndex,
+                                   TradingRecommendation)
 from fmp.repository.utils import log_repo_action
-from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCollection, AsyncIOMotorCursor, AsyncIOMotorDatabase
-from pydantic import BaseModel, RootModel
+from motor.motor_asyncio import (AsyncIOMotorClient, AsyncIOMotorCollection,
+                                 AsyncIOMotorCursor, AsyncIOMotorDatabase)
+from pydantic import BaseModel
 from pymongo import DESCENDING, results
 from pymongo.errors import ConnectionFailure
-from typing import Optional
 
 logger: logging.Logger = logging.getLogger("db_logger")
 
@@ -59,10 +62,24 @@ class MongoDBRepository(ABC):
         self._db: AsyncIOMotorDatabase = self._client[cfg.mongodb.db_name]
         self._indexes_updated: bool = False
 
-        if collection_name := getattr(self, f"_{self.__class__.__name__}__collection_name"):
+        if collection_name := getattr(
+            self, f"_{self.__class__.__name__}__collection_name"
+        ):
             self._collection: AsyncIOMotorCollection = self._db[collection_name]
         else:
             raise CollectionNameNotDefinedException(self.__class__)
+
+    @property
+    def watch(self):
+        """
+        Watch the collection for changes.
+
+        Returns
+        -------
+        AsyncIOMotorCursor
+            Cursor object.
+        """
+        return self._collection.watch
 
     async def ensure_indexes(self) -> None:
         """
@@ -71,14 +88,18 @@ class MongoDBRepository(ABC):
         """
         for index, is_unique in self.indexes:
             parsed_index = (
-                index.as_tuple if isinstance(index, MongoDBIndex) else [element.as_tuple for element in index]
+                index.as_tuple
+                if isinstance(index, MongoDBIndex)
+                else [element.as_tuple for element in index]
             )
             await self._collection.create_index(parsed_index, unique=is_unique)
 
         self._indexes_updated = True
 
     @log_repo_action(logger)
-    async def insert_one(self, document: BaseModel, *args, **kwargs) -> results.InsertOneResult:
+    async def insert_one(
+        self, document: BaseModel, *args, **kwargs
+    ) -> results.InsertOneResult:
         """
         Insert a single document into the collection.
 
@@ -95,7 +116,9 @@ class MongoDBRepository(ABC):
         return await self._collection.insert_one(document, *args, **kwargs)
 
     @log_repo_action(logger)
-    async def insert_many(self, documents: list, *args, **kwargs) -> results.InsertManyResult:
+    async def insert_many(
+        self, documents: list, *args, **kwargs
+    ) -> results.InsertManyResult:
         """
         Insert multiple documents into the collection.
 
@@ -149,7 +172,9 @@ class MongoDBRepository(ABC):
         return res
 
     @log_repo_action(logger)
-    async def update_one(self, query: dict, update: dict, **kwargs) -> results.UpdateResult:
+    async def update_one(
+        self, query: dict, update: dict, **kwargs
+    ) -> results.UpdateResult:
         """
         Update a single document in the collection.
 
@@ -168,7 +193,9 @@ class MongoDBRepository(ABC):
         return await self._collection.update_one(query, {"$set": update}, **kwargs)
 
     @log_repo_action(logger)
-    async def update_many(self, query: dict, update: dict, *args, **kwargs) -> results.UpdateResult:
+    async def update_many(
+        self, query: dict, update: dict, *args, **kwargs
+    ) -> results.UpdateResult:
         """
         Update multiple documents in the collection.
 
@@ -265,7 +292,9 @@ class ForexDataRepository(MongoDBRepository):
             Document object.
         """
 
-        return await self.find_one({"ticker": ticker.raw}, sort=[("timestamp", DESCENDING)])
+        return await self.find_one(
+            {"ticker": ticker.raw}, sort=[("timestamp", DESCENDING)]
+        )
 
     async def get_available_tickers(self) -> list[str]:
         """
@@ -296,3 +325,35 @@ class ForexEconomicEventsRepository(MongoDBRepository):
 
     async def get_present_dates(self) -> list[str]:
         return await self._collection.distinct("timestamp.$date")
+
+    @property
+    def watch(self):
+        return self._collection.watch
+
+
+class ForecastResultsRepository(MongoDBRepository):
+    __collection_name = "forecast_results"
+    __model: BaseModel = TradingRecommendation
+
+    indexes: tuple[MongoDBIndex | tuple[MongoDBIndex], bool] = (
+        (
+            (
+                MongoDBIndex(key="date", direction=DESCENDING),
+                MongoDBIndex(key="ticker", direction=DESCENDING),
+            ),
+            True,
+        ),
+    )
+
+    async def update_forecast(self, forecast: TradingRecommendation) -> None:
+        res = await self.update_one(
+            {"date": forecast.date, "ticker": forecast.ticker},
+            forecast.dict(),
+            upsert=True,
+        )
+
+        logger.info(
+            f"Forecast updated: {res.raw_result}"
+            if res.modified_count
+            else f"Forecast inserted: {res.raw_result}"
+        )

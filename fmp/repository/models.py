@@ -1,8 +1,6 @@
 from bson import ObjectId
 from dataclasses import dataclass
-from datetime import datetime
-from fmp.config import cfg
-from fmp.consts import Currency
+from datetime import date
 from pandas import Timestamp
 from pydantic import (
     AwareDatetime,
@@ -16,6 +14,9 @@ from pydantic import (
 )
 from pymongo import ASCENDING, DESCENDING
 from typing import Optional, Union
+
+from fmp.config import cfg
+from fmp.consts import Currency, TradingAction
 
 
 class ListBaseModel(RootModel):
@@ -112,3 +113,9 @@ class ForexTicker(BaseModel):
 
 class ForexTickerList(ListBaseModel):
     root: list[ForexTicker]
+
+
+class TradingRecommendation(BaseModel):
+    ticker: ForexPair
+    action: TradingAction
+    date: date

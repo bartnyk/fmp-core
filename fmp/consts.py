@@ -77,3 +77,10 @@ class Country(Enum):
     def get_subject_names(cls) -> list[str]:
         """Get the list of country subject names."""
         return [subject.value for subject in cls]
+
+
+class TradingAction(Enum):
+    BUY = "BUY"
+    SELL = "SELL"
+    HOLD = "HOLD"
+
